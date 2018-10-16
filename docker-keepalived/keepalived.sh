@@ -9,6 +9,14 @@ if [[ -z ${CHECK_SCRIPT} ]]; then
   fi
 fi
 
+validate-ip ()
+{
+  if ! [[ $1 =~ ^(([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-2][0-3])\.)(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-5])$ ]]; then
+    echo "The $2 environment variable is null or not a valid IP address, exiting..."
+    exit 1
+  fi
+}
+
 # Substitute variables in config file.
 /bin/sed -i "s/{{VIRTUAL_IP}}/${VIRTUAL_IP}/g" /etc/keepalived/keepalived.conf
 /bin/sed -i "s/{{VIRTUAL_MASK}}/${VIRTUAL_MASK}/g" /etc/keepalived/keepalived.conf
@@ -18,9 +26,10 @@ fi
 
 # unicast peers
 for peer in ${UNICAST_PEERS}; do
-  /bin/sed -i "s/{{ UNICAST_PEERS }}/${peer}\n    {{ UNICAST_PEERS }}/g" /etc/keepalived/keepalived.conf
+  validate-ip ${peer} 'UNICAST_PEERS'
+  /bin/sed -i "s/{{UNICAST_PEERS}}/${peer}\n            {{UNICAST_PEERS}}/g" /etc/keepalived/keepalived.conf
 done
-/bin/sed -i "/{{ UNICAST_PEERS }}/d" /etc/keepalived/keepalived.conf
+/bin/sed -i "/{{UNICAST_PEERS}}/d" /etc/keepalived/keepalived.conf
 
 # Make sure we react to these signals by running stop() when we see them - for clean shutdown
 # And then exiting
@@ -44,10 +53,8 @@ stop()
 
 # Make sure the variables we need to run are populated and (roughly) valid
 
-if ! [[ $VIRTUAL_IP =~ ^(([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-2][0-3])\.)(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-5])$ ]]; then
-  echo "The VIRTUAL_IP environment variable is null or not a valid IP address, exiting..."
-  exit 1
-fi
+validate-ip $VIRTUAL_IP 'VIRTUAL_IP'
+
 
 if ! [[ $VIRTUAL_MASK =~ ^([0-9]|[1-2][0-9]|3[0-2])$ ]]; then
   echo "The VIRTUAL_MASK environment variable is null or not a valid subnet mask, exiting..."

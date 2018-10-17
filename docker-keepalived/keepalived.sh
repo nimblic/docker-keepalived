@@ -19,6 +19,24 @@ validate-ip ()
 
 # Substitute variables in config file.
 /bin/sed -i "s/{{VIRTUAL_IP}}/${VIRTUAL_IP}/g" /etc/keepalived/keepalived.conf
+if [[ -z ${UNICAST_SRC_IP} ]]; then
+  /bin/sed -i "s/{{UNICAST_SRC_IP}}/${UNICAST_SRC_IP}/g" /etc/keepalived/keepalived.conf
+else
+  /bin/sed -i "/unicast_src_ip/d" /etc/keepalived/keepalived.conf
+
+fi
+if [[ -z ${PRIORITY} ]]; then
+  /bin/sed -i "s/{{PRIORITY}}/${PRIORITY}/g" /etc/keepalived/keepalived.conf
+else
+  /bin/sed -i "s/{{PRIORITY}}/100/g" /etc/keepalived/keepalived.conf
+fi
+
+if [[ -z ${ADVERT_INT} ]]; then
+  /bin/sed -i "s/{{ADVERT_INT}}/${ADVERT_INT}/g" /etc/keepalived/keepalived.conf
+else
+  /bin/sed -i "s/{{ADVERT_INT}}/1/g" /etc/keepalived/keepalived.conf
+fi
+
 /bin/sed -i "s/{{VIRTUAL_MASK}}/${VIRTUAL_MASK}/g" /etc/keepalived/keepalived.conf
 /bin/sed -i "s/{{CHECK_SCRIPT}}/${CHECK_SCRIPT}/g" /etc/keepalived/keepalived.conf
 /bin/sed -i "s/{{VRID}}/${VRID}/g" /etc/keepalived/keepalived.conf
